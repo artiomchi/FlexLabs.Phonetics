@@ -2,7 +2,7 @@
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace FlexLabs.Phonerics
+namespace FlexLabs.Phonetics
 {
     public class Startup
     {

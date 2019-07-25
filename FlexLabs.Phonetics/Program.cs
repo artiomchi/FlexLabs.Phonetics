@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
 
-namespace FlexLabs.Phonerics
+namespace FlexLabs.Phonetics
 {
     public class Program
     {
