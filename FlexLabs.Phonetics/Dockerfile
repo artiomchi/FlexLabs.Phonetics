@@ -1,20 +1,20 @@
-FROM mcr.microsoft.com/dotnet/core/aspnet:2.2-stretch-slim AS base
+FROM mcr.microsoft.com/dotnet/core/aspnet:3.1-alpine AS base
 WORKDIR /app
-EXPOSE 80
-EXPOSE 443
+EXPOSE 8080
+ENV ASPNETCORE_URLS=http://+:8080
 
-FROM mcr.microsoft.com/dotnet/core/sdk:2.2-stretch AS build
+FROM mcr.microsoft.com/dotnet/core/sdk:3.1-alpine AS build
 WORKDIR /src
 COPY ["FlexLabs.Phonetics/FlexLabs.Phonetics.csproj", "FlexLabs.Phonetics/"]
 RUN dotnet restore "FlexLabs.Phonetics/FlexLabs.Phonetics.csproj"
 COPY . .
 WORKDIR "/src/FlexLabs.Phonetics"
-RUN dotnet build "FlexLabs.Phonetics.csproj" -c Release -o /app
+RUN dotnet build "FlexLabs.Phonetics.csproj" -c Release -o /app/build
 
 FROM build AS publish
-RUN dotnet publish "FlexLabs.Phonetics.csproj" -c Release -o /app
+RUN dotnet publish "FlexLabs.Phonetics.csproj" -c Release -o /app/publish
 
 FROM base AS final
 WORKDIR /app
-COPY --from=publish /app .
+COPY --from=publish /app/publish .
 ENTRYPOINT ["dotnet", "FlexLabs.Phonetics.dll"]
