@@ -15,7 +15,7 @@ namespace FlexLabs.Phonetics
             _next = next;
         }
 
-        private static readonly Dictionary<Char, String> PhoneticDictionary = new Dictionary<Char, String>
+        private static readonly Dictionary<char, string> _phoneticDictionary = new()
         {
             ['a'] = "Alpha",
             ['b'] = "Bravo",
@@ -60,17 +60,17 @@ namespace FlexLabs.Phonetics
 
         public async Task Invoke(HttpContext context)
         {
-            String query = context.Request.Query["q"];
-            if (String.IsNullOrWhiteSpace(query))
+            string query = context.Request.Query["q"];
+            if (string.IsNullOrWhiteSpace(query))
             {
                 await _next.Invoke(context);
                 return;
             }
 
             context.Response.ContentType = "text/plain";
-            var lettersSets = query.ToLower().Select(c => PhoneticDictionary.TryGetValue(c, out var word) ? (c,  word) : (c, word: $"[{c}]"));
-            var letters = String.Join(" ", lettersSets.Select(x => x.c.ToString().PadLeft((Int32)Math.Ceiling((Single)x.word.Length / 2)).PadRight(x.word.Length).ToUpper()));
-            var words = String.Join(" ", lettersSets.Select(x => x.word));
+            var lettersSets = query.ToLower().Select(c => _phoneticDictionary.TryGetValue(c, out var word) ? (c,  word) : (c, word: $"[{c}]"));
+            var letters = string.Join(" ", lettersSets.Select(x => x.c.ToString().PadLeft((int)Math.Ceiling((float)x.word.Length / 2)).PadRight(x.word.Length).ToUpper()));
+            var words = string.Join(" ", lettersSets.Select(x => x.word));
             await context.Response.WriteAsync(letters + "\n");
             await context.Response.WriteAsync(words);
         }

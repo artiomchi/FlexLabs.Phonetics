@@ -21,7 +21,10 @@ namespace FlexLabs.Phonetics
                 app.UseDeveloperExceptionPage();
             }
 
-            app.UseMiddleware<PhoneticsMiddleware>();
+            app.UseHttpsRedirection();
+            app.UseFileServer();
+
+            app.Map("/ph", mapApp => mapApp.UseMiddleware<PhoneticsMiddleware>());
         }
     }
 }
