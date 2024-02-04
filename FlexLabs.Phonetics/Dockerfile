@@ -1,20 +1,22 @@
-FROM mcr.microsoft.com/dotnet/aspnet:5.0-alpine AS base
-WORKDIR /app
-EXPOSE 8080
-ENV ASPNETCORE_URLS=http://+:8080
-
-FROM mcr.microsoft.com/dotnet/sdk:5.0-alpine AS build
+FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
+# Install clang/zlib1g-dev dependencies for publishing to native
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends \
+    clang zlib1g-dev
+ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
 COPY ["FlexLabs.Phonetics/FlexLabs.Phonetics.csproj", "FlexLabs.Phonetics/"]
 RUN dotnet restore "FlexLabs.Phonetics/FlexLabs.Phonetics.csproj"
 COPY . .
 WORKDIR "/src/FlexLabs.Phonetics"
-RUN dotnet build "FlexLabs.Phonetics.csproj" -c Release -o /app/build
+RUN dotnet build "FlexLabs.Phonetics.csproj" -c $BUILD_CONFIGURATION -o /app/build
 
 FROM build AS publish
-RUN dotnet publish "FlexLabs.Phonetics.csproj" -c Release -o /app/publish
+ARG BUILD_CONFIGURATION=Release
+RUN dotnet publish "FlexLabs.Phonetics.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=true
 
-FROM base AS final
+FROM mcr.microsoft.com/dotnet/runtime-deps:8.0 AS final
 WORKDIR /app
+EXPOSE 8080
 COPY --from=publish /app/publish .
-ENTRYPOINT ["dotnet", "FlexLabs.Phonetics.dll"]
+ENTRYPOINT ["./FlexLabs.Phonetics"]

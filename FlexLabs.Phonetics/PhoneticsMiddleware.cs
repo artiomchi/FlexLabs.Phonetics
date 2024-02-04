@@ -1,20 +1,9 @@
-﻿using Microsoft.AspNetCore.Http;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+﻿using System.Text;
 
 namespace FlexLabs.Phonetics
 {
-    public class PhoneticsMiddleware
+    public class PhoneticsMiddleware(RequestDelegate next)
     {
-        private readonly RequestDelegate _next;
-
-        public PhoneticsMiddleware(RequestDelegate next)
-        {
-            _next = next;
-        }
-
         private static readonly Dictionary<char, string> _phoneticDictionary = new()
         {
             ['a'] = "Alpha",
@@ -53,26 +42,40 @@ namespace FlexLabs.Phonetics
             ['7'] = "Seven",
             ['8'] = "Eight",
             ['9'] = "Nine",
-            ['.'] = "Decimal point",
             ['-'] = "Hyphen",
             ['.'] = "Full stop",
+            [','] = "Comma",
         };
 
         public async Task Invoke(HttpContext context)
         {
-            string query = context.Request.Query["q"];
+            string? query = context.Request.Query["q"];
             if (string.IsNullOrWhiteSpace(query))
             {
-                await _next.Invoke(context);
+                await next.Invoke(context);
                 return;
             }
 
             context.Response.ContentType = "text/plain";
-            var lettersSets = query.ToLower().Select(c => _phoneticDictionary.TryGetValue(c, out var word) ? (c,  word) : (c, word: $"[{c}]"));
-            var letters = string.Join(" ", lettersSets.Select(x => x.c.ToString().PadLeft((int)Math.Ceiling((float)x.word.Length / 2)).PadRight(x.word.Length).ToUpper()));
-            var words = string.Join(" ", lettersSets.Select(x => x.word));
+
+            StringBuilder letters = new(), words = new();
+            foreach (var letter in query.ToLower())
+            {
+                if (letters.Length != 0)
+                {
+                    letters.Append(' ');
+                    words.Append(' ');
+                }
+
+                words.Append(_phoneticDictionary.TryGetValue(letter, out var word)
+                    ? word.AsSpan()
+                    : ['[', letter, ']']);
+                var wordLength = word?.Length ?? 3;
+                letters.Append(letter.ToString().PadLeft((int)Math.Ceiling((float)wordLength  / 2)).PadRight(wordLength));
+            }
+
             await context.Response.WriteAsync(letters + "\n");
-            await context.Response.WriteAsync(words);
+            await context.Response.WriteAsync(words.ToString());
         }
     }
 }

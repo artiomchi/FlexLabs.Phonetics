@@ -1,0 +1,10 @@
+@WebApplication1_HostAddress = http://localhost:5000
+
+GET {{WebApplication1_HostAddress}}
+###
+
+GET {{WebApplication1_HostAddress}}/ph?q=123
+###
+
+GET {{WebApplication1_HostAddress}}/ph?q=1*2^3
+###
