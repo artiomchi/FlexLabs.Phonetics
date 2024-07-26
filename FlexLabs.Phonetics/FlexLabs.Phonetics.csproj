@@ -6,7 +6,8 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <InvariantGlobalization>true</InvariantGlobalization>
     <PublishAot>true</PublishAot>
-    <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
+    <EnableRequestDelegateGenerator>true</EnableRequestDelegateGenerator>
+    <IsPublishable>true</IsPublishable>
   </PropertyGroup>
 
   <ItemGroup>

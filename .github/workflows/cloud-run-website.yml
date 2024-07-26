@@ -5,12 +5,12 @@ on:
     branches:
     - master
 
-# Environment variables available to all jobs and steps in this workflow
 env:
   GKE_PROJECT: ${{ secrets.GKE_PROJECT }}
   RUN_REGION: europe-west1
   SERVICE_NAME: fl-phonetics
-  DOCKER_IMAGE: "eu.gcr.io/${{ secrets.GKE_PROJECT }}/fl-phonetics:${{ github.sha }}"
+  DOCKER_REGISTRY: "eu.gcr.io"
+  DOCKER_IMAGE: "${{ secrets.GKE_PROJECT }}/fl-phonetics"
 
 jobs:
   setup-build:
@@ -35,18 +35,14 @@ jobs:
       run: |
         gcloud --quiet auth configure-docker
 
-    - name: Build service
+    - name: Build container
       run: |
-        docker build -f "./FlexLabs.Phonetics/Dockerfile" -t "$DOCKER_IMAGE" .
-
-    - name: Push Docker image
-      run: |
-        docker push $DOCKER_IMAGE
+        dotnet publish -r linux-x64 -p:PublishProfile=DefaultContainer -p:ContainerRegistry=$DOCKER_REGISTRY -p:ContainerRepository=$DOCKER_IMAGE -p:ContainerImageTag=${{ github.sha }}
 
     - name: Deploy to Cloud Run
       uses: 'google-github-actions/deploy-cloudrun@v2'
       with:
         service: ${{ env.SERVICE_NAME }}
-        image: ${{ env.DOCKER_IMAGE }}
+        image: "${{ env.DOCKER_REGISTRY }}/${{ env.DOCKER_IMAGE }}:${{ github.sha }}"
         region: ${{ env.RUN_REGION }}
         flags: "--allow-unauthenticated"
