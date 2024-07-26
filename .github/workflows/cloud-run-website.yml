@@ -33,7 +33,7 @@ jobs:
 
     - name: Configure Docker
       run: |
-        gcloud --quiet auth configure-docker
+        gcloud --quiet auth configure-docker $DOCKER_REGISTRY
 
     - name: Build container
       run: |
