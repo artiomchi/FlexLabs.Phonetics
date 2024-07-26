@@ -9,8 +9,8 @@ env:
   GKE_PROJECT: ${{ secrets.GKE_PROJECT }}
   RUN_REGION: europe-west1
   SERVICE_NAME: fl-phonetics
-  DOCKER_REGISTRY: "eu.gcr.io"
-  DOCKER_IMAGE: "${{ secrets.GKE_PROJECT }}/fl-phonetics"
+  DOCKER_REGISTRY: europe-west1-docker.pkg.dev
+  DOCKER_IMAGE: "${{ secrets.GKE_PROJECT }}/${{ secrets.GKE_PROJECT }}/fl-phonetics"
 
 jobs:
   setup-build:
