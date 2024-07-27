@@ -3,19 +3,18 @@ name: Build and Deploy to Cloud Run
 on:
   push:
     branches:
-    - master
+    - main
 
 env:
-  GKE_PROJECT: ${{ secrets.GKE_PROJECT }}
-  RUN_REGION: europe-west1
   SERVICE_NAME: fl-phonetics
-  DOCKER_REGISTRY: europe-west1-docker.pkg.dev
-  DOCKER_IMAGE: "${{ secrets.GKE_PROJECT }}/${{ secrets.GKE_PROJECT }}/fl-phonetics"
-
 jobs:
-  setup-build:
+  build:
     name: Setup, Build, Push and Deploy
     runs-on: ubuntu-latest
+    environment: production
+    permissions:
+      id-token: write
+      contents: read
 
     steps:
     - name: Checkout
@@ -24,25 +23,26 @@ jobs:
     - name: GCloud authenticate
       uses: google-github-actions/auth@v2
       with:
-        credentials_json: ${{ secrets.GKE_KEY }}
-
-    - name: GCLoud setup
-      uses: google-github-actions/setup-gcloud@v2
-      with:
-        project_id: ${{ secrets.GKE_PROJECT }}
+        create_credentials_file: true
+        workload_identity_provider: '${{ secrets.GCP_WIP }}'
+        service_account: '${{ secrets.GCP_ACCOUNT }}'
 
     - name: Configure Docker
       run: |
-        gcloud --quiet auth configure-docker $DOCKER_REGISTRY
+        gcloud --quiet auth configure-docker ${{ secrets.GCP_REGISTRY }}
 
     - name: Build container
+      id: build
       run: |
-        dotnet publish -r linux-x64 -p:PublishProfile=DefaultContainer -p:ContainerRegistry=$DOCKER_REGISTRY -p:ContainerRepository=$DOCKER_IMAGE -p:ContainerImageTag=${{ github.sha }}
+        SHA_TAG="sha-${GITHUB_SHA::7}"
+        echo "sha_tag=$SHA_TAG" >> $GITHUB_OUTPUT
+        dotnet publish -r linux-x64 -p:PublishProfile=DefaultContainer -p:ContainerRegistry=${{ secrets.GCP_REGISTRY }} -p:ContainerRepository=${{ secrets.GCP_REPOSITORY }}/$SERVICE_NAME -p:ContainerImageTag=$SHA_TAG
 
     - name: Deploy to Cloud Run
       uses: 'google-github-actions/deploy-cloudrun@v2'
       with:
+        project_id: ${{ secrets.GCP_PROJECT }}
         service: ${{ env.SERVICE_NAME }}
-        image: "${{ env.DOCKER_REGISTRY }}/${{ env.DOCKER_IMAGE }}:${{ github.sha }}"
-        region: ${{ env.RUN_REGION }}
+        image: "${{ secrets.GCP_REGISTRY }}/${{ secrets.GCP_REPOSITORY }}/${{ env.SERVICE_NAME }}:${{ steps.build.outputs.sha_tag }}"
+        region: ${{ secrets.GCP_REGION }}
         flags: "--allow-unauthenticated"
