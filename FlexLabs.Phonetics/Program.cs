@@ -1,12 +1,7 @@
-﻿using FlexLabs.Phonetics;
-
-var builder = WebApplication.CreateSlimBuilder(args);
+﻿var builder = WebApplication.CreateSlimBuilder(args);
 
 var app = builder.Build();
 
-app.UseDefaultFiles();
-app.UseStaticFiles();
-
-app.Map("/ph", ma => ma.UseMiddleware<PhoneticsMiddleware>());
+app.MapGet("/", (string? q) => Results.Extensions.RazorSlice<FlexLabs.Phonetics.Slices.Index, string?>(q));
 
 app.Run();

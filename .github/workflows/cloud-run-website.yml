@@ -44,7 +44,7 @@ jobs:
       run: |
         SHA_TAG="sha-${GITHUB_SHA::7}"
         echo "sha_tag=$SHA_TAG" >> $GITHUB_OUTPUT
-        dotnet publish -r linux-x64 -p:PublishProfile=DefaultContainer -p:ContainerRegistry=${{ secrets.GCP_REGISTRY }} -p:ContainerRepository=${{ secrets.GCP_REPOSITORY }}/$SERVICE_NAME -p:ContainerImageTag=$SHA_TAG
+        dotnet publish -r linux-x64 /t:PublishContainer -p:ContainerRegistry=${{ secrets.GCP_REGISTRY }} -p:ContainerRepository=${{ secrets.GCP_REPOSITORY }}/$SERVICE_NAME -p:ContainerImageTag=$SHA_TAG
 
     - name: Deploy to Cloud Run
       uses: 'google-github-actions/deploy-cloudrun@v2'

@@ -1,0 +1,20 @@
+@using FlexLabs.Phonetics
+@using RazorSlices
+@inherits RazorSliceHttpResult<string>
+@implements IUsesLayout<FlexLabs.Phonetics.Slices._Layout>
+
+<h1>NATO Phonetic Alphabet Converter</h1>
+<form action="/" method="get">
+    <div class="form-group">
+        <label for="q">Text to convert:</label>
+        <input type="text" id="q" name="q" value="@Model" placeholder="Enter text (e.g. hello123)" required>
+    </div>
+    <button type="submit">Convert</button>
+</form>
+<p>You can also use the shorter <code>/?q=text</code> endpoint.</p>
+
+@if (!string.IsNullOrEmpty(Model))
+{
+    <h2>Converted Result:</h2>
+    <pre>@PhoneticsConverter.Convert(Model)</pre>
+}

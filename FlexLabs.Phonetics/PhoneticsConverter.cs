@@ -2,7 +2,7 @@
 
 namespace FlexLabs.Phonetics
 {
-    public class PhoneticsMiddleware(RequestDelegate next)
+    public static class PhoneticsConverter
     {
         private static readonly Dictionary<char, string> _phoneticDictionary = new()
         {
@@ -47,19 +47,16 @@ namespace FlexLabs.Phonetics
             [','] = "Comma",
         };
 
-        public async Task Invoke(HttpContext context)
+        public static string? Convert(string? input)
         {
-            string? query = context.Request.Query["q"];
-            if (string.IsNullOrWhiteSpace(query))
+            if (string.IsNullOrWhiteSpace(input))
             {
-                await next.Invoke(context);
-                return;
+                return default;
             }
 
-            context.Response.ContentType = "text/plain";
 
             StringBuilder letters = new(), words = new();
-            foreach (var letter in query.ToLower())
+            foreach (var letter in input.ToLower())
             {
                 if (letters.Length != 0)
                 {
@@ -74,8 +71,7 @@ namespace FlexLabs.Phonetics
                 letters.Append(letter.ToString().PadLeft((int)Math.Ceiling((float)wordLength  / 2)).PadRight(wordLength));
             }
 
-            await context.Response.WriteAsync(letters + "\n");
-            await context.Response.WriteAsync(words.ToString());
+            return letters + "\n" + words.ToString();
         }
     }
 }
